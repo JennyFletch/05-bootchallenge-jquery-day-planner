@@ -1,5 +1,9 @@
 $(function() {
 
+    // Set Global Variables
+    // var scheduleForTheDay = { hour1: "Do something", hour2: "Do another thing" };
+    var scheduleForTheDay = {};
+
     // Get current date and convert to user-friendly format
     // Display on page as #currentDay 
 
@@ -11,6 +15,7 @@ $(function() {
     var dateMonthNum = dayjs().month();
     var monthDateNum = dayjs().date();
 
+    // Get an appropriate suffix for the date string
     switch(monthDateNum) {
     case 1:
     case 21:
@@ -38,6 +43,10 @@ $(function() {
     var amPm = "AM"; // Gets reset when loop reaches noon block
     var timeOffset = 9; // Workday start time - use Military time for past-noon start time
 
+    // Check for previously saved events in localStorage
+    var jsonSchedule = JSON.parse(localStorage.getItem('scheduleForTheDay'));
+
+    // Build out the on-page calendar structure with click events
     for (var i=0; i < 9; i++) { // Assuming an 8-hour workday, daylight hours
         
         var blockTime = timeOffset + i; // Hour for the timeblock being created
@@ -55,18 +64,31 @@ $(function() {
         newBlock.addClass("row timeblock");
         $("#timeblocks").append(newBlock);
         
-        // Create Hour Column
+        // -- CREATE HOUR COLUMN -------------------------------------------- //
         var newBlockTime = $("<div>");
         newBlockTime.addClass("hour col-2 p-3 text-right");
         var workdayStartTime = blockTime;
         newBlockTime.text(workdayStartTime + amPm); 
         $(nthIndex).append(newBlockTime);
 
-        // Create Event Description Column
-        var newBlockDescription = $("<div>");
-        newBlockDescription.addClass("description col-9 p-3 text-dark");
+        // -- CREATE EVENT DESCRIPTION COLUMN ------------------------------- //
+        var newBlockDescription = $("<textarea>");
+        var txtareaID = "txtArea" + i;
+        newBlockDescription.attr("id", txtareaID);
 
-        currentTime = 14; // FOR TESTING ONLY! - overwrite of Day.js object
+        // Check localStorage for an event at this time
+        if (jsonSchedule) {
+            var jsonVar = "hour" + i;
+            if(jsonSchedule[jsonVar]) {
+                var storedEvent = jsonSchedule[jsonVar];
+                newBlockDescription.val(storedEvent);
+                // re-add to localStorage to be sure it persists
+                scheduleForTheDay[jsonVar] = storedEvent;
+                window.localStorage.setItem("scheduleForTheDay", JSON.stringify(scheduleForTheDay));
+            }
+        }
+    
+        newBlockDescription.addClass("description col-9 p-3 text-dark");
 
         if(currentTime > (timeOffset + i)) {
             newBlockDescription.addClass("past");
@@ -74,21 +96,23 @@ $(function() {
             newBlockDescription.addClass("present");
         } else { newBlockDescription.addClass("future"); }
 
-        newBlockDescription.on('click', function() {
-            console.log("Clicked!");
-        });
-
-        newBlockDescription.text("FPO");
         $(nthIndex).append(newBlockDescription);
 
-        // Create Save Button Column
+        // -- CREATE SAVE BUTTON COLUMN ------------------------------------- //
         var newBlockSave = $("<div>");
         newBlockSave.addClass("saveBtn col-1 d-flex justify-content-center");
 
         newBlockSave.on('click', function() {
-            console.log("Clicked!");
+
+            var siblingID = $(this).closest('.timeblock').children('.description').attr("id");
+            var currentID = siblingID.charAt(siblingID.length - 1); 
+            var rowBlock = "hour" + currentID;
+            scheduleForTheDay[rowBlock] = $(this).closest('.timeblock').children('.description').val();
+            
+            // Save to localStorage
+            window.localStorage.setItem("scheduleForTheDay", JSON.stringify(scheduleForTheDay));
         });
-        
+
         $(nthIndex).append(newBlockSave);
 
         var newBlockSaveIcon = $("<i>");
@@ -100,17 +124,3 @@ $(function() {
     }
 
 });
-
-
-
-$(".timeblock").click (function() {
-    // console.log( $( this ).text() );
-    console.log("you clicked something mysterious");
-
-    // if this == .description : allow user to change text
-    if( $( this ).hasClass("description"))  { console.log("clicked: description"); }
-
-    // if this == .saveBtn : save current line to localStorage
-    if( $( this ).hasClass("saveBtn"))  { console.log("clicked: saveBtn"); }
-
-  });
