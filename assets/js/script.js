@@ -74,12 +74,21 @@ $(function() {
             newBlockDescription.addClass("present");
         } else { newBlockDescription.addClass("future"); }
 
+        newBlockDescription.on('click', function() {
+            console.log("Clicked!");
+        });
+
         newBlockDescription.text("FPO");
         $(nthIndex).append(newBlockDescription);
 
         // Create Save Button Column
         var newBlockSave = $("<div>");
         newBlockSave.addClass("saveBtn col-1 d-flex justify-content-center");
+
+        newBlockSave.on('click', function() {
+            console.log("Clicked!");
+        });
+        
         $(nthIndex).append(newBlockSave);
 
         var newBlockSaveIcon = $("<i>");
@@ -92,8 +101,11 @@ $(function() {
 
 });
 
-$(".timeblock").on( "click", function() {
+
+
+$(".timeblock").click (function() {
     // console.log( $( this ).text() );
+    console.log("you clicked something mysterious");
 
     // if this == .description : allow user to change text
     if( $( this ).hasClass("description"))  { console.log("clicked: description"); }
