@@ -34,45 +34,71 @@ $(function() {
     
     $('#currentDay').text(dateWeekday + ', ' + dateMonth + ' ' + dateString);
 
-    // Create timeblock structure dynamically 
-    // .hour - Set time for each - 9 hours (9-5pm)
-    // .description - Create onclick function for user to add/change text 
-    //              - Check current time and add .past, .present or .future accordingly
-    // .saveBtn - Create onclick event to save new description to localStorage (function call)
+    var currentTime = dayjs().hour(); 
+    var amPm = "AM"; // Gets reset when loop reaches noon block
+    var timeOffset = 9; // Workday start time - use Military time for past-noon start time
 
+    for (var i=0; i < 9; i++) { // Assuming an 8-hour workday, daylight hours
+        
+        var blockTime = timeOffset + i; // Hour for the timeblock being created
+        var nthNum = i + 1;
+        var nthIndex = "#timeblocks .timeblock:nth-child(" + nthNum + ")"; // Dynamic reference to current timeblock div
 
+        if (blockTime === 12) {
+            amPm = "PM";
+        } else if (blockTime >= 12) {
+            amPm = "PM";
+            blockTime -= 12; // Convert to non-military hours
+        } else { amPm = "AM"; }
 
-    // <div class="row timeblock">
-    // <div class="hour col-2 p-3 text-right">9AM</div>
-    // <div class="description col-9 present text-dark"> 
-    //  Current Hour
-    // </div>
-    // <div class="saveBtn col-1 d-flex justify-content-center"><i class="fas fa-save align-self-center"></i></div>
-    // </div>
+        var newBlock = $("<div>");
+        newBlock.addClass("row timeblock");
+        $("#timeblocks").append(newBlock);
+        
+        // Create Hour Column
+        var newBlockTime = $("<div>");
+        newBlockTime.addClass("hour col-2 p-3 text-right");
+        var workdayStartTime = blockTime;
+        newBlockTime.text(workdayStartTime + amPm); 
+        $(nthIndex).append(newBlockTime);
 
-    var newBlock = $("<div>");
-    newBlock.addClass("row timeblock");
-    $("#timeblocks").append(newBlock);
-    
-    // Create Hour Column
-    var newBlockTime = $("<div>");
-    newBlockTime.addClass("hour col-2 p-3 text-right");
-    newBlockTime.text("9AM"); // Make dynamic in loop!
-    $(".timeblock").append(newBlockTime);
+        // Create Event Description Column
+        var newBlockDescription = $("<div>");
+        newBlockDescription.addClass("description col-9 p-3 text-dark");
 
-    // Create Event Description Column
-    var newBlockDescription = $("<div>");
-    newBlockDescription.addClass("description col-9 p-3 present text-dark");
-    newBlockDescription.text("FPO");
-    $(".timeblock").append(newBlockDescription);
+        currentTime = 14; // FOR TESTING ONLY! - overwrite of Day.js object
 
-    // Create Save Button Column
-    var newBlockSave = $("<div>");
-    newBlockSave.addClass("saveBtn col-1 d-flex justify-content-center");
-    $(".timeblock").append(newBlockSave);
+        if(currentTime > (timeOffset + i)) {
+            newBlockDescription.addClass("past");
+        } else if ( currentTime === (timeOffset + i)) {
+            newBlockDescription.addClass("present");
+        } else { newBlockDescription.addClass("future"); }
 
-    var newBlockSaveIcon = $("<i>");
-    newBlockSaveIcon.addClass("fas fa-save align-self-center");
-    $(".saveBtn").append(newBlockSaveIcon);
+        newBlockDescription.text("FPO");
+        $(nthIndex).append(newBlockDescription);
+
+        // Create Save Button Column
+        var newBlockSave = $("<div>");
+        newBlockSave.addClass("saveBtn col-1 d-flex justify-content-center");
+        $(nthIndex).append(newBlockSave);
+
+        var newBlockSaveIcon = $("<i>");
+        newBlockSaveIcon.addClass("fas fa-save align-self-center");
+        newBlockSaveIcon.attr("style", "cursor:pointer");
+        var nthIndexWithBtn = nthIndex + " .saveBtn";
+        $(nthIndexWithBtn).append(newBlockSaveIcon);
+
+    }
 
 });
+
+$(".timeblock").on( "click", function() {
+    // console.log( $( this ).text() );
+
+    // if this == .description : allow user to change text
+    if( $( this ).hasClass("description"))  { console.log("clicked: description"); }
+
+    // if this == .saveBtn : save current line to localStorage
+    if( $( this ).hasClass("saveBtn"))  { console.log("clicked: saveBtn"); }
+
+  });
